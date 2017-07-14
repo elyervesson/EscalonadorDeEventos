@@ -10,6 +10,7 @@ public class Servidor implements Runnable{
 	private List<Fregues> fila1;
 	private List<Fregues> fila2;
 	private Random gerador;
+	private Fregues nextFregues;
 	
 	public Servidor() {
 		System.out.println("Construtor do Servidor");
@@ -44,7 +45,7 @@ public class Servidor implements Runnable{
 		return fila1.size() == 0 && fila2.size() == 0;
 	}
 	
-	private void adicionaNaFila(Fregues newFregues) {
+	public void adicionaNaFila(Fregues newFregues) {
 		if (newFregues.getTipoFila() == 1) {
 			System.out.println("Adicionando cliente na fila 1");
 			fila1.add(newFregues);
@@ -76,6 +77,15 @@ public class Servidor implements Runnable{
 			fila2 = fila2.subList(1, fila2.size());
 		}
 		return freguesAtual;
+	}
+	
+	public Fregues getNextFregues() {
+		if (fila1.size() != 0) {
+			nextFregues = fila1.get(0);
+		} else {
+			nextFregues = fila2.get(0);
+		}
+		return nextFregues;
 	}
 	
 	public void adicionaFregues(Fregues newFregues) throws InterruptedException {
