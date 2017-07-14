@@ -5,7 +5,6 @@ public class Escalonador implements Runnable{
 	private final Servidor servidor;
 
     public Escalonador(final Servidor servidor) {
-		System.out.println("Construtor do Escalonador");
     	this.servidor = servidor;
     }
     
@@ -25,14 +24,17 @@ public class Escalonador implements Runnable{
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-
-			System.out.println("Cliente chegou");
+        	System.out.println("Elementos da Fila 1: " + servidor.getFila(1));
+           	System.out.println("Elementos da Fila 2: " + servidor.getFila(2));
+			//System.out.println("Cliente chegou");
         	// Simula a chegada do fregues ao servidor
+           	System.out.println("Elemento em Serviço: " + nextFregues);
         	try {
 				servidor.adicionaFregues(nextFregues);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+        	
         }
     }
 

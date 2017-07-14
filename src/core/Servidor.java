@@ -13,7 +13,6 @@ public class Servidor implements Runnable{
 	private Fregues nextFregues;
 	
 	public Servidor() {
-		System.out.println("Construtor do Servidor");
 		this.fila1 = new ArrayList<>();
 		this.fila2 = new ArrayList<>();
 		this.gerador = new Random();
@@ -47,10 +46,10 @@ public class Servidor implements Runnable{
 	
 	public void adicionaNaFila(Fregues newFregues) {
 		if (newFregues.getTipoFila() == 1) {
-			System.out.println("Adicionando cliente na fila 1");
+			//System.out.println("Adicionando cliente na fila 1");
 			fila1.add(newFregues);
 		} else {
-			System.out.println("Adicionando cliente na fila 2");
+			//System.out.println("Adicionando cliente na fila 2");
 			fila2.add(newFregues);
 		}
 	}
@@ -58,25 +57,21 @@ public class Servidor implements Runnable{
 	private void atendeProximoDaFila() throws InterruptedException {
 		if (fila1.size() != 0) {
 			System.out.println("Cliente da fila 1 sera atendido");
-			removeFregues(1);
+			removeFregues();
 			executaServico();
 		} else {
 			System.out.println("Cliente da fila 2 sera atendido");
-			removeFregues(2);
+			removeFregues();
 			executaServico();
 		}
 	}
 	
-	private Fregues removeFregues(int tipoFregues) {
-		Fregues freguesAtual;
-		if (tipoFregues == 1) {
-			freguesAtual = fila1.get(0);
-			fila1 = fila1.subList(1, fila1.size());
+	void removeFregues() {
+		if (fila1.get(0).getTipoFila() == 1) {
+			fila1.remove(0);
 		} else {
-			freguesAtual = fila2.get(0);
-			fila2 = fila2.subList(1, fila2.size());
+			fila2.remove(0);
 		}
-		return freguesAtual;
 	}
 	
 	public Fregues getNextFregues() {
@@ -88,13 +83,20 @@ public class Servidor implements Runnable{
 		return nextFregues;
 	}
 	
+	public List<Fregues> getFila(int numFila) {
+		if(numFila == 1)
+			return fila1;
+		else 
+			return fila2;
+	}
+	
 	public void adicionaFregues(Fregues newFregues) throws InterruptedException {
 		if (isLivre()) {
-			System.out.println("Servidor livre, atendendo o cliente");
+			//System.out.println("Servidor livre, atendendo o cliente");
 			setLivre(false);
 			executaServico();
 		} else {
-			System.out.println("Servidor ocupado, colocando o cliente na fila");
+			//System.out.println("Servidor ocupado, colocando o cliente na fila");
 			adicionaNaFila(newFregues);			
 		}
 	}
