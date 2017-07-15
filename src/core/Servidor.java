@@ -1,5 +1,7 @@
 package core;
 
+import utils.Utils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -10,7 +12,6 @@ public class Servidor implements Runnable{
 	private List<Fregues> fila1;
 	private List<Fregues> fila2;
 	private Random gerador;
-	private Fregues nextFregues;
 	
 	public Servidor() {
 		this.fila1 = new ArrayList<>();
@@ -19,104 +20,93 @@ public class Servidor implements Runnable{
 		
 		this.isLivre = true;
 	}
-	
-	public boolean isLivre() {
-		return isLivre;
+
+	public List<Fregues> getFila1() {
+		return fila1;
 	}
 
-	public void setLivre(boolean isLivre) {
-		this.isLivre = isLivre;
+	public List<Fregues> getFila2() {
+		return fila2;
 	}
 
-	public void executaServico() throws InterruptedException {
-		int duracao = gerador.nextInt(4) + 3; // Gera numeros entre 3 e 7
-		
-		/* execução do codigo de servico */
-		System.out.println("Tempo ate o fim do atendimento: " + duracao);
+	public void adicionaFregues(Fregues newFregues) {
+		if (isLivre) {
+			Utils.print("Servidor esta livre e o cliente sera atendido",
+					fila1.size(), fila2.size(), newFregues.getIdFregues());
+			isLivre = false;
+			executaServico(newFregues.getIdFregues());
+		} else {
+			adicionaNaFila(newFregues);
+		}
+	}
 
-		Thread.sleep(duracao*2000);
-		/* fim da execução do codigo de servico */
-		
-		setLivre(true);
+	public void adicionaNaFila(Fregues newFregues) {
+		Utils.print("Servidor ocupado e o cliente sera colocado na fila " + newFregues.getTipoFila(),
+				fila1.size(), fila2.size(), newFregues.getIdFregues());
+
+		if (newFregues.getTipoFila() == 1) {
+			fila1.add(newFregues);
+		} else if (newFregues.getTipoFila() == 2){
+			fila2.add(newFregues);
+		}
+	}
+
+	public void executaServico(int idFregues) {
+		int duracao = gerador.nextInt(5) + 3; // Gera numeros entre 3 e 7
+
+		Utils.print(duracao + " segundos ate o fim do servico",
+				fila1.size(), fila2.size(), idFregues);
+		try {
+			Thread.sleep(duracao*2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		isLivre = true;
+	}
+
+	private Fregues removeFregues(int tipoFila) {
+		Fregues proximoFregues = null;
+		if (tipoFila == 1) {
+			proximoFregues = fila1.get(0);
+			fila1 = fila1.subList(1, fila1.size());
+		} else if (tipoFila == 2){
+			proximoFregues = fila2.get(0);
+			fila2 = fila2.subList(1, fila2.size());
+		}
+		return proximoFregues;
+	}
+
+	private void atendeProximoDaFila() {
+		if (fila1.size() != 0) {
+			Fregues proximo = removeFregues(1);
+			Utils.print("Pegando proximo fregues da fila 1 pra ser atendido",
+					fila1.size(), fila2.size(), proximo.getIdFregues());
+			executaServico(proximo.getIdFregues());
+		} else if (fila2.size() != 0) {
+			Fregues proximo = removeFregues(2);
+			Utils.print("Pegando proximo fregues da fila 2 pra ser atendido",
+					fila1.size(), fila2.size(), proximo.getIdFregues());
+			executaServico(proximo.getIdFregues());
+		}
 	}
 
 	private boolean isFilaVazia() throws InterruptedException {
 		return fila1.size() == 0 && fila2.size() == 0;
 	}
-	
-	public void adicionaNaFila(Fregues newFregues) {
-		if (newFregues.getTipoFila() == 1) {
-			//System.out.println("Adicionando cliente na fila 1");
-			fila1.add(newFregues);
-		} else {
-			//System.out.println("Adicionando cliente na fila 2");
-			fila2.add(newFregues);
-		}
-	}
-	
-	private void atendeProximoDaFila() throws InterruptedException {
-		if (fila1.size() != 0) {
-			System.out.println("Cliente da fila 1 sera atendido");
-			removeFregues();
-			executaServico();
-		} else {
-			System.out.println("Cliente da fila 2 sera atendido");
-			removeFregues();
-			executaServico();
-		}
-	}
-	
-	void removeFregues() {
-		if (fila1.get(0).getTipoFila() == 1) {
-			fila1.remove(0);
-		} else {
-			fila2.remove(0);
-		}
-	}
-	
-	public Fregues getNextFregues() {
-		if (fila1.size() != 0) {
-			nextFregues = fila1.get(0);
-		} else {
-			nextFregues = fila2.get(0);
-		}
-		return nextFregues;
-	}
-	
-	public List<Fregues> getFila(int numFila) {
-		if(numFila == 1)
-			return fila1;
-		else 
-			return fila2;
-	}
-	
-	public void adicionaFregues(Fregues newFregues) throws InterruptedException {
-		if (isLivre()) {
-			//System.out.println("Servidor livre, atendendo o cliente");
-			setLivre(false);
-			executaServico();
-		} else {
-			//System.out.println("Servidor ocupado, colocando o cliente na fila");
-			adicionaNaFila(newFregues);			
-		}
-	}
 
 	@Override
 	public void run() {
 		while (true) {
-			if (isLivre()) {
-				//System.out.println("Servidor esta livre");
+			if (isLivre) {
 				try {
 					if (!isFilaVazia()) {
-						System.out.println("Atendendo o proximo cliente da fila");
-						setLivre(false);
-						atendeProximoDaFila();
-					}
+                        isLivre = false;
+                        atendeProximoDaFila();
+                    }
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				
-				
 			}
 		}
 	}
